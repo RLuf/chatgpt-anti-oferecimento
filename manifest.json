@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "ChatGPT Anti-Oferecimento",
+  "version": "1.0",
+  "description": "Adiciona automaticamente 'não me ofereça nada' no ChatGPT",
+  "permissions": ["activeTab"],
+  "content_scripts": [
+    {
+      "matches": ["*://chat.openai.com/*", "*://chatgpt.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Anti-Oferecimento ChatGPT"
+  }
+} 

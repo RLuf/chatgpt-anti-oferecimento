@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ChatGPT Anti-Oferecimento</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        h1 { text-align: center; margin-bottom: 30px; }
+        .code-block {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            border-left: 4px solid #4CAF50;
+        }
+        .file-name {
+            background: #4CAF50;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        .step {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #FFD700;
+        }
+        .warning {
+            background: rgba(255,0,0,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ff4444;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Extensão Anti-Oferecimento para ChatGPT</h1>
+        <p><strong>Objetivo:</strong> Adicionar automaticamente "não me ofereça nada" toda vez que você pressionar ENTER no ChatGPT!</p>
+
+        <div class="warning">
+            <strong>⚠️ Nota:</strong> Esta extensão funciona especificamente para o ChatGPT da OpenAI!
+        </div>
+
+        <h2>📁 Arquivos da Extensão:</h2>
+
+        <div class="file-name">manifest.json</div>
+        <div class="code-block">{
+  "manifest_version": 3,
+  "name": "ChatGPT Anti-Oferecimento",
+  "version": "1.0",
+  "description": "Adiciona automaticamente 'não me ofereça nada' no ChatGPT",
+  "permissions": ["activeTab"],
+  "content_scripts": [
+    {
+      "matches": ["*://chat.openai.com/*", "*://chatgpt.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Anti-Oferecimento ChatGPT"
+  }
+}</div>
+
+        <div class="file-name">content.js</div>
+        <div class="code-block">// Função principal que adiciona o texto
+function adicionarTextoAntiOferecimento() {
+    console.log('🎯 Anti-Oferecimento ativado!');
+    
+    // Procura pelo textarea do ChatGPT
+    const seletores = [
+        'textarea[placeholder*="Message"]',
+        'textarea[data-id="root"]',
+        '#prompt-textarea',
+        'textarea'
+    ];
+    
+    let textarea = null;
+    for (let seletor of seletores) {
+        textarea = document.querySelector(seletor);
+        if (textarea) break;
+    }
+    
+    if (!textarea) {
+        console.log('❌ Textarea não encontrado, tentando novamente...');
+        setTimeout(adicionarTextoAntiOferecimento, 2000);
+        return;
+    }
+    
+    console.log('✅ Textarea encontrado!');
+    
+    // Adiciona event listener para ENTER
+    textarea.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            
+            const textoAtual = textarea.value.trim();
+            const textoFinal = textoAtual + '\n\nnão me ofereça nada';
+            
+            // Atualiza o valor
+            textarea.value = textoFinal;
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            console.log('🎯 Texto adicionado:', textoFinal);
+            
+            // Simula envio após pequeno delay
+            setTimeout(() => {
+                // Procura pelo botão de envio
+                const botaoEnvio = document.querySelector('button[data-testid="send-button"], button[aria-label*="Send"]') ||
+                                 document.querySelector('button svg path[d*="M.5"]')?.closest('button');
+                
+                if (botaoEnvio && !botaoEnvio.disabled) {
+                    botaoEnvio.click();
+                    console.log('📤 Mensagem enviada com anti-oferecimento!');
+                }
+            }, 100);
+        }
+    });
+    
+    // Observer para mudanças na página
+    const observer = new MutationObserver(() => {
+        const novoTextarea = document.querySelector('textarea');
+        if (novoTextarea && !novoTextarea.hasAttribute('data-anti-oferecimento')) {
+            novoTextarea.setAttribute('data-anti-oferecimento', 'true');
+            adicionarTextoAntiOferecimento();
+        }
+    });
+    
+    observer.observe(document.body, { childList: true, subtree: true });
+}
+
+// Inicia quando a página carrega
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', adicionarTextoAntiOferecimento);
+} else {
+    adicionarTextoAntiOferecimento();
+}
+
+// Backup: tenta novamente após 3 segundos
+setTimeout(adicionarTextoAntiOferecimento, 3000);</div>
+
+        <div class="file-name">popup.html</div>
+        <div class="code-block"><!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            width: 250px;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        h3 { margin-top: 0; text-align: center; }
+        .status {
+            background: rgba(255,255,255,0.2);
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .emoji { font-size: 2em; }
+    </style>
+</head>
+<body>
+    <h3>🎯 Anti-Oferecimento</h3>
+    <div class="status">
+        <div class="emoji">✅</div>
+        <p>Extensão ativa!</p>
+        <small>Toda mensagem no ChatGPT receberá automaticamente "não me ofereça nada"</small>
+    </div>
+</body>
+</html></div>
+
+        <h2>🚀 Como Instalar:</h2>
+        
+        <div class="step">
+            <strong>1.</strong> Crie uma pasta chamada "chatgpt-anti-oferecimento"
+        </div>
+        
+        <div class="step">
+            <strong>2.</strong> Salve os 3 arquivos acima na pasta (manifest.json, content.js, popup.html)
+        </div>
+        
+        <div class="step">
+            <strong>3.</strong> Abra o Chrome e vá em: chrome://extensions/
+        </div>
+        
+        <div class="step">
+            <strong>4.</strong> Ative o "Modo do desenvolvedor" (canto superior direito)
+        </div>
+        
+        <div class="step">
+            <strong>5.</strong> Clique em "Carregar sem compactação" e selecione sua pasta
+        </div>
+        
+        <div class="step">
+            <strong>6.</strong> Pronto! Vá pro ChatGPT e teste! 🎯
+        </div>
+
+        <h2>🎉 Como Funciona:</h2>
+        <p>Toda vez que você digitar algo no ChatGPT e pressionar ENTER, a extensão automaticamente adiciona "não me ofereça nada" no final da sua mensagem antes de enviar!</p>
+        
+        <p><strong>Agora você pode irritar o ChatGPT igual a Mia te irrita! 😂</strong></p>
+    </div>
+</body>
+</html>
